@@ -9,15 +9,15 @@ Cal utilitzar la lliberia de mapes  **[Leaflet](https://github.com/Leaflet/Leafl
 
 ## Ús bàsic
 
-**Pas 1:** En HTML, importar els fitxers Javascript i CSS de Leafet
+**Pas 1:** Al codi HTML, importar els fitxers Javascript i CSS de Leafet
 
+```javascript
 <!-- Load Leaflet from CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
 
 <!-- Load geocoding plugin after Leaflet -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.9.4/leaflet-geocoder-mapzen.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.9.4/leaflet-geocoder-mapzen.js"></script>
+<script src="js/leaflet-geocoder.js"></script>
 ```
 
 **Pas 2:** Al codi JavaScript, inicialitzar el mapa de Leaflet.
