@@ -676,16 +676,9 @@
     
             layerIcon.title = 'layer: ' + feature.properties.layer;
           }
-		  console.debug(feature.properties);
-		  var result="";
-		  if (feature.properties.street!==undefined) {
-			  result = result+feature.properties.street+" ";
-			  if (feature.properties.housenumber!==undefined) result = result+feature.properties.housenumber+",";
-			  else result = result+",";
-		  }
-		  if (feature.properties.localadmin!==undefined) result = result+feature.properties.localadmin;
-		  else if (feature.properties.locality!==undefined) result = result+feature.properties.locality;
-          resultItem.innerHTML += this.highlight(result, input);
+		    console.debug(feature.properties);
+		    var result=feature.properties.label;		  
+        resultItem.innerHTML += this.highlight(result, input);
         }
       },
     
