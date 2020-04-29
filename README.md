@@ -47,4 +47,6 @@ L.control.geocoder(geocodingOptions).addTo(map);
 
 **Pas 4**: Provar!
 
+## Demo
+https://openicgc.github.io/leaflet-geocodericgc-plugin/
 
