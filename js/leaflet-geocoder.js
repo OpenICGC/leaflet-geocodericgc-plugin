@@ -430,7 +430,7 @@
 		if (input.indexOf(",tarragona")) input = input.replace(",tarragona",",tarragona,tarragona");
 		*/
 	
-        var url = this.options.url  + '/search';
+        var url = this.options.url  + '/cerca';
         var params = {
           text: input/*,
 		  lang: 'ca',
@@ -445,7 +445,7 @@
         // Prevent lack of input from sending a malformed query to Pelias
         if (!input) return;
     
-        var url = this.options.url + '/autocomplete';
+        var url = this.options.url + '/autocompletar';
         var params = {
           text: input
         };
