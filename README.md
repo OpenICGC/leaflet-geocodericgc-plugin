@@ -2,6 +2,10 @@ Leaflet + Geocodificador ICGC plugin
 ========================================
 
 Plugin que permet tenir les funcions de geocodificació en un mapa fet amb Leaflet utilitzant el geocodificador ICGC fet amb Pelias.
+2022/10/18: 
+  - he fet una copia de la branca master de https://github.com/OpenICGC/leaflet-geocodericgc-plugin.git
+  - He copiat els canvis fets a branca devel
+  - He fet commit a https://autogitlab.icgc.local/i.fabrellas/leaflet-geocodericgc-plugin-autogitlab.git
 
 ## Requeriments
 
@@ -37,8 +41,9 @@ var map = L.map('map', {
 
 ```javascript
 var geocodingOptions = {      
-	  url:'https://aws.icgc.cat/cerca_pelias/',
-      expanded: true,
+	  //url:'https://betaserver2.icgc.cat/geocodificador',
+    url:'https://eines.icgc.cat/geocodificador',
+    expanded: true,
 	  autocomplete: true,
 	  focus:false
 	  };
@@ -49,4 +54,46 @@ L.control.geocoder(geocodingOptions).addTo(map);
 
 ## Demo
 https://openicgc.github.io/leaflet-geocodericgc-plugin/
+
+## ####################################################
+## Pujada al servidor senodedev01
+
+# copiar carpeta leaflet-geocodericgc-plugin-autogitlab a /home/des.web/aplicacions/visor_leaflet_pelias2023
+
+
+# Fitxer Dockerfile a /home/des.web/aplicacions/visor_leaflet_pelias2023:
+
+	# Instruction for Dockerfile to create a new image on top of the base image (httpd)
+	FROM httpd:2.4
+	COPY /leaflet-geocodericgc-plugin-autogitlab/. /usr/local/apache2/htdocs/
+
+# esborrar contenidor
+sudo docker rm --force visor_leaflet_pelias2023
+
+# esborrar imatge
+sudo docker rmi visor_leaflet_pelias2023
+
+# Crear la imatge:
+cd /home/des.web/aplicacions/visor_leaflet_pelias2023/leaflet-geocodericgc-plugin-autogitlab
+sudo docker build -f build/Dockerfile -t visor_leaflet_pelias2023 .
+
+
+# Arrencar el contenidor:
+sudo docker run -d --name visor_leaflet_pelias2023 -p 85:80 visor_leaflet_pelias2023
+
+
+# Execucio:
+http://172.20.70.27:85/
+
+## ################################
+
+# Execució 
+Cal engegar apache.
+En el cas del servidors de PRE/PROD, cal engegar el docker d'apache i projecte
+
+cd /home/des.web/serveis/visor_pelias  
+sudo docker rmi icgc/visor_pelias
+chmod 777 deploy_dev.sh  
+./deploy_dev.sh  
+sudo docker ps  
 

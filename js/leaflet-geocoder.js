@@ -146,17 +146,17 @@
     
     // Text strings in this geocoder.
     var TEXT_STRINGS = {
-      'INPUT_PLACEHOLDER': 'Search',
-      'INPUT_TITLE_ATTRIBUTE': 'Search',
-      'RESET_TITLE_ATTRIBUTE': 'Reset',
-      'NO_RESULTS': 'No results were found.',
+      'INPUT_PLACEHOLDER': " Introduir el text a cercar (Exemples: nou 5,girona | roses | mas nou,ponts)",
+      'INPUT_TITLE_ATTRIBUTE': 'Cerca',
+      'RESET_TITLE_ATTRIBUTE': 'Esborrar',
+      'NO_RESULTS': 'No ha estat possible trobar cap resultat',
       // Error codes.
       // https://mapzen.com/documentation/search/http-status-codes/
       'ERROR_403': 'A valid API key is needed for this search feature.',
       'ERROR_404': 'The search service cannot be found. :-(',
       'ERROR_408': 'The search service took too long to respond. Try again in a second.',
       'ERROR_429': 'There were too many requests. Try again in a second.',
-      'ERROR_500': 'The search service is not working right now. Please try again later.',
+      'ERROR_500': 'El servei de geocodificació no és accessible en aquest moments.',
       'ERROR_502': 'Connection lost. Please try again later.',
       // Unhandled error code
       'ERROR_DEFAULT': 'The search service is having problems :-('
@@ -178,6 +178,7 @@
         bounds: false,
         focus: true,
         layers: null,
+        size: null,
         panToPoint: true,
         pointIcon: true, // 'images/point_icon.png',
         polygonIcon: true, // 'images/polygon_icon.png',
@@ -272,6 +273,16 @@
         params.layers = layers;
         return params;
       },
+      getSize: function (params) {
+        var size = this.options.size;
+    
+        if (!size) {
+          return params;
+        }
+    
+        params.size = size;
+        return params;
+      },
     
       getBoundingBoxParam: function (params) {
         /*
@@ -324,8 +335,8 @@
          * true               // Boolean - take the map center
          * false              // Boolean - No latlng to be considered
          */
-        var focus = this.options.focus;
-    
+        //var focus = this.options.focus;
+        var focus = setFocus;
         if (!focus) {
           return params;
         }
@@ -360,6 +371,7 @@
         params = this.getBoundingBoxParam(params);
         params = this.getFocusParam(params);
         params = this.getLayers(params);
+        params = this.getSize(params);
     
         // Search API key
         if (this.apiKey) {
@@ -419,41 +431,33 @@
       search: function (input) {
         // Prevent lack of input from sending a malformed query to Pelias
         if (!input) return;
-		
-		/*if (input.indexOf(",Barcelona")) input = input.replace(",Barcelona",",Barcelona,Barcelona");
-		if (input.indexOf(",barcelona")) input = input.replace(",barcelona",",barcelona,barcelona");
-		if (input.indexOf(",Girona")) input = input.replace(",Girona",",Girona,Girona");
-		if (input.indexOf(",girona")) input = input.replace(",girona",",girona,girona");
-		if (input.indexOf(",Lleida")) input = input.replace(",Lleida",",Lleida,Lleida");
-		if (input.indexOf(",lleida")) input = input.replace(",lleida",",lleida,lleida");
-		if (input.indexOf(",Tarragona")) input = input.replace(",Tarragona",",Tarragona,Tarragona");
-		if (input.indexOf(",tarragona")) input = input.replace(",tarragona",",tarragona,tarragona");
-		*/
-	
+        input = input.replace("(portal) ","");
+        input = input.replace("(poblament) ","");
+        input = input.replace("(topònim) ","");
         var url = this.options.url  + '/cerca';
         var params = {
-          text: input/*,
-		  lang: 'ca',
-		  sources: 'oa',
-		  size: 10*/
+          text: input
         };
-    
+
         this.callPelias(url, params, 'search');
       },
     
       autocomplete: throttle(function (input) {
         // Prevent lack of input from sending a malformed query to Pelias
         if (!input) return;
-    
+        input = input.replace("(portal) ","");
+        input = input.replace("(poblament) ","");
+        input = input.replace("(topònim) ","");
+
         var url = this.options.url + '/autocompletar';
         var params = {
           text: input
         };
-    
+
         this.callPelias(url, params, 'autocomplete');
       }, API_RATE_LIMIT),
-    
-      place: function (id) {
+
+        place: function (id) {
         // Prevent lack of input from sending a malformed query to Pelias
         if (!id) return;
     
@@ -474,6 +478,15 @@
       maxReqTimestampRendered: new Date().getTime(),
     
       callPelias: function (endpoint, params, type) {
+        // eliminar possibles markers i cercles de geocodificació inversa previa
+        map.eachLayer(function (layer) {
+          if (layer instanceof L.Marker) {
+              map.removeLayer(layer)
+          }
+          if (layer instanceof L.Circle) {
+              map.removeLayer(layer)
+          }
+        });
         params = this.getParams(params);
     
         L.DomUtil.addClass(this._search, 'leaflet-pelias-loading');
@@ -550,7 +563,7 @@
             });
             return;
           }
-    
+
           // Autocomplete and search responses
           if (results && results.features) {
             // Check if request is stale:
@@ -589,10 +602,36 @@
     
         corslite(url, handleResponse, true);
       },
+          
+      getPrefix: function (layer) {
+        var prefix = "<label style='color:red'><i>(portal) </i></label>"; // adreça
+        if (layer.indexOf("topo2") >-1) prefix = "<label style='color:blue'><i>(top&ograve;nim) </i></label> ";
+        if (layer.indexOf("topo1") >-1) prefix = "<label style='color:green'><i>(poblament) </i></label> ";
+        return prefix;
+      },            
     
+      getTooltip: function (html, addendum, layer) {
+        if (addendum !== undefined) {
+          if (addendum.tipus !== undefined) 
+          html = this.tooltip(html, addendum.tipus);
+        }
+        else 
+        {
+          if (layer.indexOf("address") >-1)  {html = this.tooltip(html, "portal");}
+        }
+        return html;
+      },
+
+      tooltip: function (text, tt) {
+        var ntext = '<span title="'+tt+'">'+text+'</span>';
+        return ntext;
+      },
+
       highlight: function (text, focus) {
-        var r = RegExp('(' + escapeRegExp(focus) + ')', 'gi');
-        return text.replace(r, '<strong>$1</strong>');
+        var r = RegExp('(' + escapeRegExp(focus.trim()) + ')', 'gi');
+        var ntext = text;
+        if (text) ntext = ntext.replace(r, '<strong>$1</strong>')
+        return ntext;
       },
     
       getIconType: function (layer) {
@@ -600,7 +639,7 @@
         var polygonIcon = this.options.polygonIcon;
         var classPrefix = 'leaflet-pelias-layer-icon-';
     
-        if (layer.match('venue') || layer.match('address')) {
+        if (layer.match('topo1') || layer.match('topo2')) {
           if (pointIcon === true) {
             return {
               type: 'class',
@@ -666,21 +705,38 @@
             // May be a class or an image path
             var layerIconContainer = L.DomUtil.create('span', 'leaflet-pelias-layer-icon-container', resultItem);
             var layerIcon;
-    
+
             if (icon.type === 'class') {
               layerIcon = L.DomUtil.create('div', 'leaflet-pelias-layer-icon ' + icon.value, layerIconContainer);
             } else {
               layerIcon = L.DomUtil.create('img', 'leaflet-pelias-layer-icon', layerIconContainer);
               layerIcon.src = icon.value;
+              /*var button = L.DomUtil.createElement('button');
+              button.innerText = ' (Zoom carrer)';
+              button.addEventListener('click', () => {
+                console.info(feature.properties);
+                console.log('button was clicked'+feature.properties.addendum.bbox);
+              })
+              layerIcon.appendChild(button);*/
             }
     
             layerIcon.title = 'layer: ' + feature.properties.layer;
           }
-		    console.debug(feature.properties);
-		    var result=feature.properties.label;		  
-        resultItem.innerHTML += this.highlight(result, input);
-        }
-      },
+
+          var prefix = this.getPrefix(feature.properties.layer);
+          resultItem.innerHTML += prefix + this.highlight(feature.properties.etiqueta, input);
+
+          resultItem.innerHTML = this.getTooltip(resultItem.innerHTML, feature.properties.addendum, feature.properties.layer);
+
+          /*/*Add a button to each LI */
+         /* var button = document.createElement('button');
+          button.innerText = ' (Zoom carrer)';
+          button.addEventListener('click', () => {
+            //console.info(feature.properties);
+            //console.log('button was clicked'+feature.properties.addendum.bbox);
+          })*/
+          //resultItem.appendChild(button);*/
+      }},
     
       showMessage: function (text) {
         var resultsContainer = this._results;
@@ -705,10 +761,23 @@
           this.markers = [];
         }
       },
-    
-      showMarker: function (text, latlng) {
-        this._map.setView(latlng, this._map.getZoom() || 8);
-    
+
+      showMarkerZoomLevel: function (text, latlng, zoomLevel, nbbox) {
+        const classRectangle = 'rectangle_carrer';
+          var classes = document.getElementsByClassName(classRectangle);
+      
+          if(classes.length > 0) {
+              classes[0].remove();             
+          }
+          //console.info(nbbox);
+        if (nbbox!==null){
+          var bbox = nbbox.split(',');
+          var bounds = [[bbox[1], bbox[0]], [bbox[3], bbox[2]]];
+      
+          var rect = L.rectangle(bounds, {color: '#2066AC', weight: 1, className: classRectangle}).addTo(map);
+        }
+       
+        this._map.setView(latlng, zoomLevel);
         var markerOptions = (typeof this.options.markers === 'object') ? this.options.markers : {};
     
         if (this.options.markers) {
@@ -716,10 +785,6 @@
           this._map.addLayer(marker);
           this.markers.push(marker);
           marker.openPopup();
-		  var latLngs = [ marker.getLatLng() ];
-		  var markerBounds = L.latLngBounds(latLngs);
-          map.fitBounds(markerBounds);
-		  
         }
       },
     
@@ -745,19 +810,32 @@
           maxZoom: 16
         });
       },
-    
+
       setSelectedResult: function (selected, originalEvent) {
         var latlng = L.GeoJSON.coordsToLatLng(selected.feature.geometry.coordinates);
         this._input.value = selected.textContent || selected.innerText;
         var layer = selected.feature.properties.layer;
         // "point" layers (venue and address in Pelias) must always display markers
-        if ((layer !== 'venue' && layer !== 'address') && selected.feature.bbox && !this.options.overrideBbox) {
-          this.removeMarkers();
-          this.fitBoundingBox(selected.feature.bbox);
-        } else {
-          this.removeMarkers();
-          this.showMarker(selected.innerHTML, latlng);
+        this.removeMarkers();
+        var topo=false;
+        var zoomLevel = 17;
+        if (layer.indexOf('topo')>-1) {
+          topo=true;
+          if (selected.feature.properties.addendum.zoom_level) zoomLevel=selected.feature.properties.addendum.zoom_level;
+          if (selected.feature.properties.addendum.zoomLevel) zoomLevel=selected.feature.properties.addendum.zoomLevel;
         }
+        if (topo) {
+         // this.showMarkerZoomLevel(selected.innerHTML, latlng, selected.feature.properties.addendum.zoomLevel,selected.feature.properties.addendum.bbox);
+          this.showMarkerZoomLevel(selected.innerHTML, latlng, zoomLevel,null);
+        }
+        else
+        {
+          if (((!topo) && layer !== 'address') && selected.feature.bbox && !this.options.overrideBbox) {
+              this.fitBoundingBox(selected.feature.bbox);
+            } else {   
+              this.showMarkerZoomLevel(selected.innerHTML, latlng, zoomLevel,selected.feature.properties.addendum.bbox);
+            }
+        }      
         this.fire('select', {
           originalEvent: originalEvent,
           latlng: latlng,
@@ -772,7 +850,7 @@
           this.place(selected.feature.properties.gid);
         }
       },
-    
+      
       /**
        * Convenience function for focusing on the input
        * A `focus` event is fired, but it is not fired here. An event listener
@@ -805,7 +883,7 @@
           }
         }
       },
-    
+
       clearResults: function (force) {
         // Hide results from view
         this._results.style.display = 'none';
@@ -956,14 +1034,19 @@
             var panToPoint = function (selected, options) {
               if (selected && options.panToPoint) {
                 var layer = selected.feature.properties.layer;
-                // "point" layers (venue and address in Pelias) must always display markers
-                if ((layer !== 'venue' && layer !== 'address') && selected.feature.bbox && !options.overrideBbox) {
-                  self.removeMarkers();
-                  self.fitBoundingBox(selected.feature.bbox);
-                } else {
-                  self.removeMarkers();
-                  self.showMarker(selected.innerHTML, L.GeoJSON.coordsToLatLng(selected.feature.geometry.coordinates));
+                // "point" layers (topo and address in Pelias) must always display markers
+                self.removeMarkers();
+                if ((layer.indexOf('topo')>-1) && selected.feature.properties.addendum.zoomLevel ) {
+                  self.showMarkerZoomLevel(selected.innerHTML, L.GeoJSON.coordsToLatLng(selected.feature.geometry.coordinates), selected.feature.properties.addendum.zoomLevel,selected.feature.properties.addendum.bbox);
                 }
+                else
+                {
+                  if (((layer.indexOf('topo')<0) && layer !== 'address') && selected.feature.bbox && !this.options.overrideBbox) {
+                      self.fitBoundingBox(selected.feature.bbox);
+                    } else {    
+                      self.showMarkerZoomLevel(selected.innerHTML, L.GeoJSON.coordsToLatLng(selected.feature.geometry.coordinates), 17,selected.feature.properties.addendum.bbox);
+                    }
+                } 
               }
             };
     
@@ -1156,7 +1239,7 @@
     
       _onMapInteraction: function (event) {
         this.blur();
-    
+
         // Only collapse if the input is clear, and is currently expanded.
         // Disabled if expanded is set to true
         if (!this.options.expanded) {

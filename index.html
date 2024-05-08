@@ -1,86 +1,537 @@
-<html>
+<!--<!DOCTYPE html>-->
+<html lang="en">
 <head>
-  <title>Leaflet geocoder ICGC demo</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.9.4/leaflet-geocoder-mapzen.css">
-  <script src="js/leaflet-geocoder.js"></script>
-  <style>
-    #map{ height: 800px; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
+    <meta charset="utf-8">
+    <link rel="manifest" href="./app.webmanifest">
+    <title>Visor Geocodificador ICGC</title>
+    <meta name=description content="Visor Geocodificador">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#317EFB"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css">
+    <script src="leaflet1_9_4\leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.9.4/leaflet-geocoder-mapzen.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.6.0/proj4.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.min.js"></script>
+    <link rel="stylesheet" href="leaflet1_9_4/coord-projection.css">
+    <script src="leaflet1_9_4/coord-projection.js"></script>
+    <script src="js/leaflet-geocoder.js"></script>
+    <link rel="shortcut icon" href="js/images/favicon.ico">
 
-  <script>
-    //obviously API keys must be kept very secure :)
-    function rot13(s) {
-      return (s ? s : this).split('').map(function(_)
+    
+    <style>
+      #map {
+        height: 99%;
+      }
+
+      .leaflet-touch .leaflet-pelias-control.leaflet-pelias-expanded {
+        width: 515px;
+        top: 45px;
+        left: 15px;
+      }
+
+      .divFocus {
+        padding-left: 5px;
+        padding-right: 10px;
+        padding-top: 5px;
+        top:45px;
+        left: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        font-size: 14px;
+      }
+
+      .box{
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 999;
+        text-align: left;
+        width: 515px;
+        height: 140px;
+        border-radius: 5px;
+        border: 3px solid rgb(0,0,0);
+        font-weight: bold;
+        background-color:white;
+        font-size: 16px;
+    }
+    .leaflet-pelias-input{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    }
+
+    .leaflet-pelias-message{
+      color: #ff6666;
+    }
+
+    ::placeholder {
+      color: #678a63;
+      opacity: 1; /* Firefox */
+    }
+
+    ::-ms-input-placeholder { /* Edge 12 -18 */
+      color: #678a63;
+    }
+
+    </style>
+    <link rel="apple-touch-icon" href="icons/apple-icon-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/apple-splash-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+  </head>
+  </body>
+    <div class="container">
+        <div id="map"></div>
+        <div id="div_geocoder" class="box"> Geocodificador ICGC          
+        </div>
+      </div>
+    </div>
+    <script>    
+      if (navigator.serviceWorker) {    
+        if (navigator.serviceWorker.controller) {
+        } else {
+            navigator.serviceWorker
+            .register("./service-worker.js", {
+            scope: "./"
+            })
+            .then(function (reg) {
+            });
+        }
+      }
+
+      // Get url parameters
+      var params = {};
+      window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+        params[key] = value;
+      });
+
+      var map = L.map('map', {
+        center: [41.431, 1.8580],
+        zoom: 8,
+        minZoom: 2,
+        maxZoom: 18,
+        scrollWheelZoom: true,
+        zoomControl: false
+      });
+
+      var geocodingOptions = {
+        url: 'https://eines.icgc.cat/geocodificador',
+        //url: 'http://localhost:3300',
+        expanded: true,
+        autocomplete: true,
+        layers: "topo1,topo2,address",
+        size: 5,
+        focus: false,
+        panToPoint: true
+      };
+      geocodingOptions.params = {};
+
+      if (params.mun==undefined) {
+          // cal validar que correspon a una comarca
+          // cal fer zoom a la comarca
+          if (params.com!==undefined) {
+           /* params.com = await cercaComarca(params.com);
+            const com =  params.com;
+            console.info("com="+com );
+            if (params.com=="") 
+              resolve({"message":"El paràmetre com no identifica unívocament cap comarca"});
+            else */
+              geocodingOptions.params.com = params.com;
+          }
+        }
+        else
         {
-          if (!_.match(/[A-Za-z]/)) return _;
-          c = Math.floor(_.charCodeAt(0) / 97);
-          k = (_.toLowerCase().charCodeAt(0) - 83) % 26 || 26;
-          return String.fromCharCode(k + ((c == 0) ? 64 : 96));
-        }).join('');
-    };
-    var map = L.map('map', {
-      center:[41.431, 1.8580],
-      zoom: 8,
-      minZoom:2,
-	  maxZoom:18,
-      scrollWheelZoom: true
-    });
-    var geocodingOptions = {      
-	  url:'https://eines.icgc.cat/geocodificador',
-      expanded: true,
-	  autocomplete: true,
-	  focus:false
-	  };
-    L.control.geocoder(geocodingOptions).addTo(map);
-	
-	var urlServerTiles="https://tilemaps.icgc.cat";
-	
-	
-    var SCOPE_GLOBAL = "global";
-	var SCOPE_CATALUNYA = "catalunya";
-	var SCOPE_TOT = "tot"	
-	
-	var subDomains=['a','b','c'];
-	var subDomainsA=['a','b','c'];
-	L.tileLayer(urlServerTiles+'/mapfactory/wmts/osm_suau/CAT3857_15/{z}/{x}/{y}.png',
-				{
-					minZoom: 1,
-					maxZoom: 14,
-					subdomains: subDomainsA,
-					tms: false,
-					continuousWorld: false,
-					worldCopyJump: false,
-					scope: SCOPE_TOT,
-					zIndex: -3
-				}).addTo(map);
-				
-	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-				{
-					minZoom: 15,
-					maxZoom: 18,
-					subdomains: subDomains,
-					scope: SCOPE_GLOBAL,
-					zIndex: -2
-				}).addTo(map);
-	L.tileLayer(urlServerTiles+'/mapfactory/wmts/topo_suau/CAT3857/{z}/{x}/{y}.png',
-				{
-					tms: false,
-					continuousWorld: true,
-					worldCopyJump: false,
-					minZoom: 15,
-					maxZoom: 18,
-					scope: SCOPE_CATALUNYA,
-					zIndex: -1
-				}).addTo(map);	
+          // cal validar que correspon a un municipi
+          // cal fer zoom al municipi
+          //params.mun = await cercaMunicipi(params.mun);
+          /*if (params.parMun=="") 
+            resolve({"message":"El paràmetre mun no identifica unívocament cap municipi"});
+          else
+          {*/
+            geocodingOptions.params.mun = params.mun;
+          //}
+          
+        }
+      var geocoder = L.control.geocoder(geocodingOptions);
+      geocoder.addTo(map);
 
+      // checkbox prioritzar
+      var setFocus = false;
+      var command = L.control({
+        position: 'topleft'
+      });
+      command.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'divFocus');
+        div.innerHTML = '<form><input id="focusCheckBox" type="checkbox"/><label for="focusCheckBox">  Prioritzar els resultats propers al centre del mapa</label></form>';
+        return div;
+      };
+      command.addTo(map);
+
+     
+      var divgeocoder = document.getElementsByClassName("leaflet-pelias-control leaflet-bar leaflet-control");
+
+      // control zoom
+      var zoom = L.control.zoom(
+        {
+            position: 'topright'
+        }
+    );
+    zoom.addTo(map);
+
+   
+      /*geocodingOptions.params = {};
+
+      // caldria tenir un servei per consultar si una cadena correspon a un unic municipi o una comarca i retornes el seu bbox
+      // Pelias podria fer-ho, fent una peticio amb layers=topo_tipus_17, però els topònims no s'actualitzats gaire sovint (ara no contenen la comarca Lluçanès i els noms de municipi potser no estan tots actualitzats)
+      // Pelias retorna una coordenada per comarca/municipi, però es podria fer que retornes el bbox en camp addendum
+      // Pelias no pot retornar la llista de totes les comarques o municipis (cal informar paràmetre text i el màxim nombre de erespostes és 40.)
+
+      let tractarComMun = async function (params) {
+        console.info(params);
+        console.info(geocodingOptions.params);
+        if (params.mun==undefined) {
+          // cal validar que correspon a una comarca
+          // cal fer zoom a la comarca
+          if (params.com) {
+            params.com = await cercaComarca(params.com);
+            const com =  params.com;
+            console.info("com="+com );
+            if (params.com=="") 
+              resolve({"message":"El paràmetre com no identifica unívocament cap comarca"});
+            else 
+              geocodingOptions.params.com = params.com;
+          }
+        }
+        else
+        {
+          // cal validar que correspon a un municipi
+          // cal fer zoom al municipi
+          params.mun = await cercaMunicipi(params.mun);
+          if (params.parMun=="") 
+            resolve({"message":"El paràmetre mun no identifica unívocament cap municipi"});
+          else
+          {
+            geocodingOptions.params.mun = params.mun;
+          }
+          
+        }
+      }
+      let tractarComMun1 = async function (params) {
+        geocodingOptions.params= await tractarComMun(params);
+        console.info(geocodingOptions.params);
+        return geocodingOptions.params
+      }
+
+      //geocodingOptions.params = tractarComMun1(params);
+
+      console.info(geocodingOptions.params);
+      //cal indicar al visor que la cerca es fa restringida a una comarca/municipi
+
+
+
+      //Cal copiar els fitxers json de la carpeta \\icgc\dades\datacloud_2\divisions-administratives\json_unzip corresponent a municipis 1000000
+
+*/
+      // mostrar coordenades
+      const epsg4326= L.CRS.EPSG4326;
+      let coordP = L.control.coordProjection({
+          crs: epsg4326,
+      }).addTo(map);
+
+      // change projection with:
+      coordP.changeCrs(epsg4326); // crs is string only if it's leaflet's official projections, otherwise it should be a proj4jsleaflet object.
+      
+      // logo
+      L.Control.Watermark = L.Control.extend({
+          onAdd: function(map) {
+              var img = L.DomUtil.create('img');
+
+              img.src = 'js/images/ICGC_color_norma.svg';
+              img.style.width = '150px';
+
+              return img;
+          },
+
+          onRemove: function(map) {
+              // Nothing to do here
+          }
+      });
+
+      L.control.watermark = function(opts) {
+          return new L.Control.Watermark(opts);
+      }
+
+      L.control.watermark({ position: 'bottomright' }).addTo(map);
+      /*
+      var logo = L.control({position: "bottomright"});
+      logo.onAdd = function(map) {
+          var div = L.DomUtil.create("div", "info legend");
+          div.innerHTML = '<img width="150" src="js/images/ICGC_color_norma.svg">';
+          return div;
+      }
+      logo.addTo(map); */
+      
+      //Font: https://openicgc.github.io/exemples/leaflet/icgc-raster-leaflet-code.html
+      const topoMonICGCCache = L.tileLayer('https://geoserveis.icgc.cat/servei/catalunya/contextmaps/wmts/contextmaps-mapa-estandard/MON3857NW/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: 'Catalunya: Institut Cartogràfic i Geològic de Catalunya CC-BY-SA-3, Gencat i altres.<br> Resta del món: <a href="https://openmaptiles.org/" target="_blank">© OpenMapTiles  </a>; © OpenStreetMap contributors; © Mapzen, OpenStreetMap, and others; World Imagery ©ESRI.<a href="https://www.icgc.cat/Aplicacions/Visors/ContextMaps#credits" target="_blank">...Més detall</a>'
+      }).addTo(map);
+
+      map.on('click', onMapClick);
+     /* 
+      var urlServerTiles = "https://tilemaps.icgc.cat";
+      var SCOPE_GLOBAL = "global";
+      var SCOPE_CATALUNYA = "catalunya";
+      var SCOPE_TOT = "tot"
+      var subDomains = ['a', 'b', 'c'];
+      var subDomainsA = ['a', 'b', 'c'];
+     
+     L.tileLayer(urlServerTiles + '/mapfactory/wmts/osm_suau/CAT3857_15/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 14,
+        subdomains: subDomainsA,
+        tms: false,
+        continuousWorld: false,
+        worldCopyJump: false,
+        scope: SCOPE_TOT,
+        zIndex: -3
+      }).addTo(map);
+     
+      L.tileLayer(urlServerTiles + '/mapfactory/wmts/topo_suau/CAT3857/{z}/{x}/{y}.png', {
+        tms: false,
+        continuousWorld: true,
+        worldCopyJump: false,
+        minZoom: 15,
+        maxZoom: 18,
+        scope: SCOPE_CATALUNYA,
+        zIndex: -1
+      }).addTo(map);*/
+      /*
+      L.tileLayer('https://geoserveis.icgc.cat/icc_mapesmultibase/noutm/wmts/topo/GRID3857/{z}/{x}/{y}.png', {
+        tms: false,
+        continuousWorld: true,
+        worldCopyJump: false,
+        minZoom: 17,
+        maxZoom: 18,
+        scope: SCOPE_CATALUNYA,
+        zIndex: -1
+      }).addTo(map);*/
+
+      function handleCommand(e) {
+        setFocus = this.checked;
+        e.stopPropagation();
+      }
+
+      document.getElementById("focusCheckBox").addEventListener("click", handleCommand, false);
+
+      function onMapClick(e) {
+        map.eachLayer(function(layer) {
+          if (layer instanceof L.Marker) {
+            map.removeLayer(layer)
+          }
+          if (layer instanceof L.Circle) {
+            map.removeLayer(layer)
+          }
+        });
+        var lat = e.latlng.lat;
+        var lon = e.latlng.lng;
+        var dist = 0.5;
+        var layers = "topo2,address";
+        var url = "https://eines.icgc.cat/geocodificador/invers?lat=" + lat + "&lon=" + lon +
+          "&size=1&boundary.circle.radius=" + dist + "&layers=" + layers;
+        var html = null;
+        var target_latlng = null;
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState === 4 && this.status === 200) {
+            var data = JSON.parse(this.responseText);
+            if (data.features == undefined) return false;
+            if (data.features.length === 0) {
+              return false;
+            }
+            const zoom = map.getZoom()
+            const latm = map.getCenter().lat
+            const metersPerPixel = 156543.03392 * Math.cos(latm * Math.PI / 180) / Math.pow(2, zoom)
+            // Multiply that by a factor based on how large the circle should appear on the screen
+            const desiredRadiusInPixels = 1;
+            const radius = metersPerPixel * desiredRadiusInPixels
+            // Create the circle
+            target_latlng = L.latLng(lat, lon);
+            var marker = L.circle(target_latlng, {
+              radius: radius,
+              color: 'red',
+              fillColor: 'red'
+            }).addTo(map);
+            for (var i = 0; i < data.features.length; i++) {
+              html = "";
+              var tipus = "<label style='color:red'>(portal)</portal>";              
+              if (data.features[i].properties.layer== "topo1") tipus ="<label style='color:green'>(poblament)</label>";              
+              if (data.features[i].properties.layer== "topo2") tipus ="<label style='color:blue'>(topònim)</label>";
+              html +=
+                "<div style='font-size: 0.8em;color:#666;'><b> " + tipus + "</b></div>" +
+
+                "<b>" + data.features[i].properties.etiqueta + "</b>" +
+                "<div style='font-size: 0.8em;color:#666;'>(" + data.features[i].geometry.coordinates[0].toFixed(6) + " " + data.features[i].geometry.coordinates[1].toFixed(6) + ")</div>" +
+                "<div style='font-size: 0.8em;color:#666;'>Dist&agrave;ncia al punt indicat: " + data.features[i].properties.distancia * 1000 + " m </div><hr/>" //+
+              html = html.replace(/undefined/g, "");
+              var target_lat = data.features[i].geometry.coordinates[1];
+              var target_lon = data.features[i].geometry.coordinates[0];
+              target_latlng = L.latLng(target_lat, target_lon);
+              var marker = L.marker(target_latlng).addTo(map);
+              marker.bindPopup(html).openPopup();
+            }
+          }
+        };
+        xhttp.open("GET", url, true);
+        xhttp.send();
+      }
+      function cercaMunicipi(codi)  {
+        let isOK;
+        if (onlyNumbers(codi))
+        {
+          if (codi.substring(0, 1) == "8") codi = "0"+codi
+      
+          isOK = filter_municipis.features.filter(function(o){
+            return (o.properties.CODIMUNI.toLowerCase() == codi)
+            });
+        }
+        else
+        {
+          codi = removeAccents(codi);
+          codi = decodeURI(codi);
+          isOK = filter_municipis.features.filter(function(o){
+            return (removeAccents(o.properties.NOMMUNI.toLowerCase()) == codi)
+            });
+          if (isOK.length == 0) {
+            isOK = filter_municipis.features.filter(function(o){
+              return (removeAccents(o.properties.NOMMUNI.toLowerCase()).indexOf(codi) >-1)
+              });
+          }
+        }		
+        var idmun="";
+        if (isOK.length == 1) 
+        {
+          idmun = isOK[0].properties.CODIMUNI;
+          if (idmun.substring(0, 1) == "0") idmun=idmun.substring(1);
+        } 
+        
+        return idmun
+		}
 	
+		function cercaComarca(codi)  {
+
+      /*var fitxerMun = 'data/divisions-administratives-municipis.json';
+      //var fitxerMun = __dirname + '\\divisions-administratives-municipis.json'
+      
+   
+      var dataMun=fs.readFileSync(fitxerMun, 'utf8');
+      let filter_municipis= JSON.parse(dataMun);*/
+
+      var fitxer = 'data/divisions-administratives-comarques.json';
+      fetch(fitxer)
+        .then(response => response.json())
+        .then(json => {
+            console.log(JSON.stringify(json));
+            let filter_comarques= json;
+            let isOK;
+            console.info("codi="+codi);
+            var resultat = "";
+
+            if (onlyNumbers(codi))
+            {
+              if (codi.length == 1) codi = "0"+codi;
+          
+              isOK = filter_comarques.features.filter(function(o){
+                return (o.properties.CODICOMAR.toLowerCase() == codi)
+                });
+            }
+            else
+            {
+              codi = removeAccents(codi);
+              codi = decodeURI(codi);
+              isOK = filter_comarques.features.filter(function(o){
+                return (removeAccents(o.properties.NOMCOMAR.toLowerCase()) == codi)
+                });
+              if (isOK.length == 0) {
+                isOK = filter_comarques.features.filter(function(o){
+                  return (removeAccents(o.properties.NOMCOMAR.toLowerCase()).indexOf(codi) >-1)
+                  });
+              }
+            }		
+
+            var idcom="";
+            if (isOK.length == 1) 
+            {
+              idcom = isOK[0].properties.CODICOMAR;
+              if (idcom.substring(0, 1) == "0") idcom=idcom.substring(1);
+            } 
+            //console.info("idcom="+idcom);
+            return idcom
+        
+        }
+        )
+
+      //var dataCom=fs.readFileSync(fitxerCom, 'utf8');
+      //let filter_comarques= JSON.parse(dataCom);
+
+
+		}
 	
-  </script>
+		function  onlyNumbers(str) {
+			return Boolean(str.match(/^[0-9]*$/));
+	  }
+
+    function removeAccents(s) {
+
+    // no canviem ü, ï
+    //var accents = 'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
+    //var accentsOut = "AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg";
+    const accents = "ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎĪìíîīÙÚÛŰùűúûĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğïÏüÜ";
+    const accentsOut = "AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIiiiiUUUUuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGggiiuU";
+    const i = accents.split("");
+    const o = accentsOut.split("");
+    const map = {};
+    i.forEach((el, idx) => {
+
+      map[el] = o[idx];
+
+    });
+    return s.replace(/[^A-Za-z0-9]/g, (ch) => {
+
+      return map[ch] || ch;
+
+    }).toLowerCase();
+
+    }
+    </script>
   </body>
 </html>
