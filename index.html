@@ -145,7 +145,6 @@
 
       var geocodingOptions = {
         url: 'https://eines.icgc.cat/geocodificador',
-        //url: 'http://localhost:3300',
         expanded: true,
         autocomplete: true,
         layers: "topo1,topo2,address",
@@ -155,32 +154,6 @@
       };
       geocodingOptions.params = {};
 
-      if (params.mun==undefined) {
-          // cal validar que correspon a una comarca
-          // cal fer zoom a la comarca
-          if (params.com!==undefined) {
-           /* params.com = await cercaComarca(params.com);
-            const com =  params.com;
-            console.info("com="+com );
-            if (params.com=="") 
-              resolve({"message":"El paràmetre com no identifica unívocament cap comarca"});
-            else */
-              geocodingOptions.params.com = params.com;
-          }
-        }
-        else
-        {
-          // cal validar que correspon a un municipi
-          // cal fer zoom al municipi
-          //params.mun = await cercaMunicipi(params.mun);
-          /*if (params.parMun=="") 
-            resolve({"message":"El paràmetre mun no identifica unívocament cap municipi"});
-          else
-          {*/
-            geocodingOptions.params.mun = params.mun;
-          //}
-          
-        }
       var geocoder = L.control.geocoder(geocodingOptions);
       geocoder.addTo(map);
 
@@ -207,60 +180,6 @@
     );
     zoom.addTo(map);
 
-   
-      /*geocodingOptions.params = {};
-
-      // caldria tenir un servei per consultar si una cadena correspon a un unic municipi o una comarca i retornes el seu bbox
-      // Pelias podria fer-ho, fent una peticio amb layers=topo_tipus_17, però els topònims no s'actualitzats gaire sovint (ara no contenen la comarca Lluçanès i els noms de municipi potser no estan tots actualitzats)
-      // Pelias retorna una coordenada per comarca/municipi, però es podria fer que retornes el bbox en camp addendum
-      // Pelias no pot retornar la llista de totes les comarques o municipis (cal informar paràmetre text i el màxim nombre de erespostes és 40.)
-
-      let tractarComMun = async function (params) {
-        console.info(params);
-        console.info(geocodingOptions.params);
-        if (params.mun==undefined) {
-          // cal validar que correspon a una comarca
-          // cal fer zoom a la comarca
-          if (params.com) {
-            params.com = await cercaComarca(params.com);
-            const com =  params.com;
-            console.info("com="+com );
-            if (params.com=="") 
-              resolve({"message":"El paràmetre com no identifica unívocament cap comarca"});
-            else 
-              geocodingOptions.params.com = params.com;
-          }
-        }
-        else
-        {
-          // cal validar que correspon a un municipi
-          // cal fer zoom al municipi
-          params.mun = await cercaMunicipi(params.mun);
-          if (params.parMun=="") 
-            resolve({"message":"El paràmetre mun no identifica unívocament cap municipi"});
-          else
-          {
-            geocodingOptions.params.mun = params.mun;
-          }
-          
-        }
-      }
-      let tractarComMun1 = async function (params) {
-        geocodingOptions.params= await tractarComMun(params);
-        console.info(geocodingOptions.params);
-        return geocodingOptions.params
-      }
-
-      //geocodingOptions.params = tractarComMun1(params);
-
-      console.info(geocodingOptions.params);
-      //cal indicar al visor que la cerca es fa restringida a una comarca/municipi
-
-
-
-      //Cal copiar els fitxers json de la carpeta \\icgc\dades\datacloud_2\divisions-administratives\json_unzip corresponent a municipis 1000000
-
-*/
       // mostrar coordenades
       const epsg4326= L.CRS.EPSG4326;
       let coordP = L.control.coordProjection({
@@ -291,60 +210,13 @@
       }
 
       L.control.watermark({ position: 'bottomright' }).addTo(map);
-      /*
-      var logo = L.control({position: "bottomright"});
-      logo.onAdd = function(map) {
-          var div = L.DomUtil.create("div", "info legend");
-          div.innerHTML = '<img width="150" src="js/images/ICGC_color_norma.svg">';
-          return div;
-      }
-      logo.addTo(map); */
       
-      //Font: https://openicgc.github.io/exemples/leaflet/icgc-raster-leaflet-code.html
       const topoMonICGCCache = L.tileLayer('https://geoserveis.icgc.cat/servei/catalunya/contextmaps/wmts/contextmaps-mapa-estandard/MON3857NW/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: 'Catalunya: Institut Cartogràfic i Geològic de Catalunya CC-BY-SA-3, Gencat i altres.<br> Resta del món: <a href="https://openmaptiles.org/" target="_blank">© OpenMapTiles  </a>; © OpenStreetMap contributors; © Mapzen, OpenStreetMap, and others; World Imagery ©ESRI.<a href="https://www.icgc.cat/ca/contextmaps" target="_blank">...Més detall</a>'
       }).addTo(map);
 
       map.on('click', onMapClick);
-     /* 
-      var urlServerTiles = "https://tilemaps.icgc.cat";
-      var SCOPE_GLOBAL = "global";
-      var SCOPE_CATALUNYA = "catalunya";
-      var SCOPE_TOT = "tot"
-      var subDomains = ['a', 'b', 'c'];
-      var subDomainsA = ['a', 'b', 'c'];
-     
-     L.tileLayer(urlServerTiles + '/mapfactory/wmts/osm_suau/CAT3857_15/{z}/{x}/{y}.png', {
-        minZoom: 1,
-        maxZoom: 14,
-        subdomains: subDomainsA,
-        tms: false,
-        continuousWorld: false,
-        worldCopyJump: false,
-        scope: SCOPE_TOT,
-        zIndex: -3
-      }).addTo(map);
-     
-      L.tileLayer(urlServerTiles + '/mapfactory/wmts/topo_suau/CAT3857/{z}/{x}/{y}.png', {
-        tms: false,
-        continuousWorld: true,
-        worldCopyJump: false,
-        minZoom: 15,
-        maxZoom: 18,
-        scope: SCOPE_CATALUNYA,
-        zIndex: -1
-      }).addTo(map);*/
-      /*
-      L.tileLayer('https://geoserveis.icgc.cat/icc_mapesmultibase/noutm/wmts/topo/GRID3857/{z}/{x}/{y}.png', {
-        tms: false,
-        continuousWorld: true,
-        worldCopyJump: false,
-        minZoom: 17,
-        maxZoom: 18,
-        scope: SCOPE_CATALUNYA,
-        zIndex: -1
-      }).addTo(map);*/
 
       function handleCommand(e) {
         setFocus = this.checked;
@@ -446,72 +318,12 @@
         
         return idmun
 		}
-	
-		function cercaComarca(codi)  {
-
-      /*var fitxerMun = 'data/divisions-administratives-municipis.json';
-      //var fitxerMun = __dirname + '\\divisions-administratives-municipis.json'
-      
-   
-      var dataMun=fs.readFileSync(fitxerMun, 'utf8');
-      let filter_municipis= JSON.parse(dataMun);*/
-
-      var fitxer = 'data/divisions-administratives-comarques.json';
-      fetch(fitxer)
-        .then(response => response.json())
-        .then(json => {
-            console.log(JSON.stringify(json));
-            let filter_comarques= json;
-            let isOK;
-            console.info("codi="+codi);
-            var resultat = "";
-
-            if (onlyNumbers(codi))
-            {
-              if (codi.length == 1) codi = "0"+codi;
-          
-              isOK = filter_comarques.features.filter(function(o){
-                return (o.properties.CODICOMAR.toLowerCase() == codi)
-                });
-            }
-            else
-            {
-              codi = removeAccents(codi);
-              codi = decodeURI(codi);
-              isOK = filter_comarques.features.filter(function(o){
-                return (removeAccents(o.properties.NOMCOMAR.toLowerCase()) == codi)
-                });
-              if (isOK.length == 0) {
-                isOK = filter_comarques.features.filter(function(o){
-                  return (removeAccents(o.properties.NOMCOMAR.toLowerCase()).indexOf(codi) >-1)
-                  });
-              }
-            }		
-
-            var idcom="";
-            if (isOK.length == 1) 
-            {
-              idcom = isOK[0].properties.CODICOMAR;
-              if (idcom.substring(0, 1) == "0") idcom=idcom.substring(1);
-            } 
-            //console.info("idcom="+idcom);
-            return idcom
-        
-        }
-        )
-
-      //var dataCom=fs.readFileSync(fitxerCom, 'utf8');
-      //let filter_comarques= JSON.parse(dataCom);
-
-
-		}
-	
+		
 		function  onlyNumbers(str) {
 			return Boolean(str.match(/^[0-9]*$/));
 	  }
 
     function removeAccents(s) {
-
     // no canviem ü, ï
     //var accents = 'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
     //var accentsOut = "AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg";
